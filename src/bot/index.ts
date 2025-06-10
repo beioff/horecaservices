@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
-import { categories } from '../companies';
-import { addOffer, deleteOffer, getOffers } from './offers';
+import { categories } from '../companies.js';
+import { addOffer, deleteOffer, getOffers } from './offers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
