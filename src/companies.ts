@@ -11,6 +11,34 @@ export const categories = [
 
 // Компании (офферы)
 export const companies = [  {
+    id: '_______________________',
+    name: 'аввааааавваавфпфавпфавп',
+    logo: '/logos/_______________________.png',
+    category: 'education',
+    slogan: 'фвапф',
+    shortDescription: 'аваав',
+    description: 'аваав',
+    benefits: [
+      'вааавва'
+    ],
+    bonus: '',
+    contactCta: 'куку',
+    contactUrl: '#',
+  },  {
+    id: '_______________________',
+    name: 'аввааааавваавфпфавпфавп',
+    logo: '/logos/_______________________.png',
+    category: 'education',
+    slogan: 'фвапф',
+    shortDescription: 'аваав',
+    description: 'аваав',
+    benefits: [
+      'вааавва'
+    ],
+    bonus: '',
+    contactCta: 'куку',
+    contactUrl: '#',
+  },  {
     id: '_________',
     name: 'ававаавав',
     logo: '/logos/_________.png',
