@@ -1,11 +1,35 @@
 import { companies } from '@/companies';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { Metadata } from 'next';
 
 export function generateStaticParams() {
   return companies.map((company) => ({
     id: company.id,
   }));
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const company = companies.find((c) => c.id === params.id);
+
+  if (!company) {
+    return {
+      title: 'Компания не найдена',
+      description: 'Запрашиваемая компания не найдена в каталоге.',
+    };
+  }
+
+  return {
+    title: `${company.name} — ${company.slogan} | HoReCa B2B`,
+    description: company.description,
+    openGraph: {
+      title: `${company.name} — ${company.slogan}`,
+      description: company.description,
+      type: 'article',
+      locale: 'ru_RU',
+      siteName: 'HoReCa B2B',
+    },
+  };
 }
 
 export default function CompanyPage({ params }: { params: { id: string } }) {
