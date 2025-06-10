@@ -1,34 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { companies, categories } from '@/companies';
+import Link from 'next/link';
 
 const ITEMS_PER_PAGE = 30;
-
-interface Company {
-  id: string;
-  name: string;
-  logo: string;
-  category: string;
-  slogan: string;
-  shortDescription: string;
-  description: string;
-  benefits: string[];
-  bonus: string;
-  contactCta: string;
-  contactUrl: string;
-}
-
-interface Category {
-  id: string;
-  name: string;
-}
-
-interface Data {
-  companies: Company[];
-  categories: Category[];
-}
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -36,22 +12,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [data, setData] = useState<Data>({ companies: [], categories: [] });
 
   useEffect(() => {
     setIsVisible(true);
-    // Fetch data from JSON file
-    fetch('/data/offers.json')
-      .then(res => res.json())
-      .then(setData)
-      .catch(console.error);
   }, []);
 
-  // Use dynamic data if available, fallback to static data
-  const companiesList = data.companies.length > 0 ? data.companies : companies;
-  const categoriesList = data.categories.length > 0 ? data.categories : categories;
-
-  const filteredCompanies = companiesList
+  const filteredCompanies = companies
     .filter((company) => !selectedCategory || company.category === selectedCategory)
     .filter((company) => 
       searchQuery === '' || 
@@ -72,7 +38,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-light">
+    <div className="min-h-screen bg-neutral-50">
       {/* Header */}
       <header className="glass-effect sticky top-0 z-50 rounded-b-[3rem] shadow-soft py-8 px-4 md:px-8">
         <div className="container-custom flex flex-col md:flex-row items-center justify-between gap-8">
@@ -168,7 +134,7 @@ export default function Home() {
                 >
                   Все категории
                 </button>
-                {categoriesList.map((category) => (
+                {categories.map((category) => (
                   <button
                     key={category.id}
                     className={`filter-option w-full ${selectedCategory === category.id ? 'active' : ''}`}
@@ -209,7 +175,7 @@ export default function Home() {
                     <div>
                       <h3 className="text-2xl font-bold text-neutral-900 mb-2">{company.name}</h3>
                       <span className="tag tag-primary">
-                        {categoriesList.find(c => c.id === company.category)?.name}
+                        {categories.find(c => c.id === company.category)?.name}
                       </span>
                     </div>
                   </div>
