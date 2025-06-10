@@ -2,7 +2,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { companies } from '../companies.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,50 +20,21 @@ interface Offer {
   contactUrl: string;
 }
 
-const COMPANIES_FILE = path.join(__dirname, '../../src/companies.ts');
+const OFFERS_FILE = path.join(__dirname, '../../public/data/offers.json');
 
 export async function addOffer(offer: Offer): Promise<void> {
   try {
     console.log('Adding new offer:', offer);
-    console.log('Companies file path:', COMPANIES_FILE);
     
-    // Read current companies file
-    const content = await fs.readFile(COMPANIES_FILE, 'utf-8');
-    console.log('Current file content length:', content.length);
+    // Read current offers file
+    const content = await fs.readFile(OFFERS_FILE, 'utf-8');
+    const data = JSON.parse(content);
     
-    // Find the companies array
-    const companiesMatch = content.match(/export const companies = \[([\s\S]*?)\];/);
-    if (!companiesMatch) {
-      throw new Error('Could not find companies array in file');
-    }
-
-    // Create new company entry
-    const newCompany = `  {
-    id: '${offer.id}',
-    name: '${offer.name}',
-    logo: '${offer.logo}',
-    category: '${offer.category}',
-    slogan: '${offer.slogan}',
-    shortDescription: '${offer.shortDescription}',
-    description: '${offer.description}',
-    benefits: [
-      ${offer.benefits.map(b => `'${b}'`).join(',\n      ')}
-    ],
-    bonus: '${offer.bonus}',
-    contactCta: '${offer.contactCta}',
-    contactUrl: '${offer.contactUrl}',
-  },`;
-
-    // Insert new company before the closing bracket
-    const newContent = content.replace(
-      /export const companies = \[([\s\S]*?)\];/,
-      `export const companies = [${newCompany}$1];`
-    );
-
-    console.log('New content length:', newContent.length);
+    // Add new offer
+    data.companies.push(offer);
     
     // Write back to file
-    await fs.writeFile(COMPANIES_FILE, newContent, 'utf-8');
+    await fs.writeFile(OFFERS_FILE, JSON.stringify(data, null, 2), 'utf-8');
     console.log('File written successfully');
   } catch (error) {
     console.error('Error adding offer:', error);
@@ -74,28 +44,15 @@ export async function addOffer(offer: Offer): Promise<void> {
 
 export async function deleteOffer(offerId: string): Promise<void> {
   try {
-    // Read current companies file
-    const content = await fs.readFile(COMPANIES_FILE, 'utf-8');
+    // Read current offers file
+    const content = await fs.readFile(OFFERS_FILE, 'utf-8');
+    const data = JSON.parse(content);
     
-    // Find the companies array
-    const companiesMatch = content.match(/export const companies = \[([\s\S]*?)\];/);
-    if (!companiesMatch) {
-      throw new Error('Could not find companies array in file');
-    }
-
-    // Remove the company with matching id
-    const companiesContent = companiesMatch[1];
-    const companyRegex = new RegExp(`\\s*{[^}]*id:\\s*'${offerId}'[^}]*},?\\n?`, 'g');
-    const newCompaniesContent = companiesContent.replace(companyRegex, '');
-
-    // Create new content
-    const newContent = content.replace(
-      /export const companies = \[([\s\S]*?)\];/,
-      `export const companies = [${newCompaniesContent}];`
-    );
-
+    // Remove the offer with matching id
+    data.companies = data.companies.filter((company: Offer) => company.id !== offerId);
+    
     // Write back to file
-    await fs.writeFile(COMPANIES_FILE, newContent, 'utf-8');
+    await fs.writeFile(OFFERS_FILE, JSON.stringify(data, null, 2), 'utf-8');
 
     // Delete logo file if it exists
     const logoPath = path.join(__dirname, '../../public/logos', `${offerId}.png`);
@@ -112,65 +69,20 @@ export async function deleteOffer(offerId: string): Promise<void> {
 
 export async function updateOffer(offerId: string, updatedOffer: Partial<Offer>): Promise<void> {
   try {
-    // Read current companies file
-    const content = await fs.readFile(COMPANIES_FILE, 'utf-8');
+    // Read current offers file
+    const content = await fs.readFile(OFFERS_FILE, 'utf-8');
+    const data = JSON.parse(content);
     
-    // Find the companies array
-    const companiesMatch = content.match(/export const companies = \[([\s\S]*?)\];/);
-    if (!companiesMatch) {
-      throw new Error('Could not find companies array in file');
+    // Find and update the offer
+    const offerIndex = data.companies.findIndex((company: Offer) => company.id === offerId);
+    if (offerIndex === -1) {
+      throw new Error(`Offer with id ${offerId} not found`);
     }
-
-    // Find the company with matching id
-    const companiesContent = companiesMatch[1];
-    const companyRegex = new RegExp(`(\\s*{[^}]*id:\\s*'${offerId}'[^}]*},?\\n?)`, 'g');
-    const companyMatch = companyRegex.exec(companiesContent);
-
-    if (!companyMatch) {
-      throw new Error(`Company with id ${offerId} not found`);
-    }
-
-    // Parse the existing company
-    const existingCompany = companyMatch[1];
-    const companyProps = existingCompany.match(/(\w+):\s*'([^']*)'/g) || [];
-    const company: Record<string, string> = {};
     
-    companyProps.forEach(prop => {
-      const [key, value] = prop.split(':').map(s => s.trim());
-      company[key] = value.replace(/^'|'$/g, '');
-    });
-
-    // Update the company properties
-    const updatedCompany = { ...company, ...updatedOffer };
-
-    // Create new company entry
-    const newCompany = `  {
-    id: '${updatedCompany.id}',
-    name: '${updatedCompany.name}',
-    logo: '${updatedCompany.logo}',
-    category: '${updatedCompany.category}',
-    slogan: '${updatedCompany.slogan}',
-    shortDescription: '${updatedCompany.shortDescription}',
-    description: '${updatedCompany.description}',
-    benefits: [
-      ${(updatedCompany.benefits as string[]).map(b => `'${b}'`).join(',\n      ')}
-    ],
-    bonus: '${updatedCompany.bonus}',
-    contactCta: '${updatedCompany.contactCta}',
-    contactUrl: '${updatedCompany.contactUrl}',
-  },`;
-
-    // Replace the old company with the updated one
-    const newCompaniesContent = companiesContent.replace(companyRegex, newCompany);
-
-    // Create new content
-    const newContent = content.replace(
-      /export const companies = \[([\s\S]*?)\];/,
-      `export const companies = [${newCompaniesContent}];`
-    );
-
+    data.companies[offerIndex] = { ...data.companies[offerIndex], ...updatedOffer };
+    
     // Write back to file
-    await fs.writeFile(COMPANIES_FILE, newContent, 'utf-8');
+    await fs.writeFile(OFFERS_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (error) {
     console.error('Error updating offer:', error);
     throw error;
