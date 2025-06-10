@@ -2,16 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Оставить заявку | HoReCa B2B',
-  description: 'Заполните форму, чтобы получить подробную информацию о B2B-решениях для вашего ресторанного бизнеса. Мы свяжемся с вами в удобное время.',
-  robots: {
-    index: false,
-    follow: true,
-  },
-};
 
 export default function ContactPage() {
   const router = useRouter();
