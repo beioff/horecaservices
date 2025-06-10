@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { companies, categories } from '@/companies';
-import Link from 'next/link';
+import ContactForm from '@/components/ContactForm';
 
 const ITEMS_PER_PAGE = 30;
 
@@ -12,16 +12,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedBenefits, setSelectedBenefits] = useState<string[]>([]);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
-
-  // Получаем все уникальные преимущества из компаний
-  const allBenefits = Array.from(
-    new Set(companies.flatMap(company => company.benefits))
-  );
 
   const filteredCompanies = companies
     .filter((company) => !selectedCategory || company.category === selectedCategory)
@@ -30,10 +26,6 @@ export default function Home() {
       company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       company.slogan.toLowerCase().includes(searchQuery.toLowerCase()) ||
       company.shortDescription.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .filter((company) => 
-      selectedBenefits.length === 0 || 
-      selectedBenefits.some(benefit => company.benefits.includes(benefit))
     );
 
   const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
@@ -47,13 +39,14 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const toggleBenefit = (benefit: string) => {
-    setSelectedBenefits(prev => 
-      prev.includes(benefit)
-        ? prev.filter(b => b !== benefit)
-        : [...prev, benefit]
-    );
-    setCurrentPage(1);
+  const handleCardClick = (companyId: string) => {
+    window.location.href = `/companies/${companyId}`;
+  };
+
+  const handleContactClick = (e: React.MouseEvent, companyId: string) => {
+    e.stopPropagation();
+    setSelectedCompany(companyId);
+    setShowContactForm(true);
   };
 
   return (
@@ -163,19 +156,6 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-
-              <div className="filter-group mt-8">
-                <h3 className="filter-title">Преимущества</h3>
-                {allBenefits.map((benefit) => (
-                  <button
-                    key={benefit}
-                    className={`filter-option w-full ${selectedBenefits.includes(benefit) ? 'active' : ''}`}
-                    onClick={() => toggleBenefit(benefit)}
-                  >
-                    {benefit}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -192,8 +172,9 @@ export default function Home() {
               {paginatedCompanies.map((company, index) => (
                 <div
                   key={company.id}
-                  className={`card p-8 hover-card ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+                  className={`card p-8 hover-card cursor-pointer ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
                   style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => handleCardClick(company.id)}
                 >
                   <div className="flex items-center mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-beige-50 mr-6 overflow-hidden">
@@ -227,12 +208,12 @@ export default function Home() {
                       {company.bonus}
                     </div>
                   )}
-                  <Link
-                    href={`/companies/${company.id}`}
+                  <button
+                    onClick={(e) => handleContactClick(e, company.id)}
                     className="btn btn-primary w-full hover-glow"
                   >
                     {company.contactCta}
-                  </Link>
+                  </button>
                 </div>
               ))}
             </div>
@@ -273,7 +254,6 @@ export default function Home() {
                   onClick={() => {
                     setSearchQuery('');
                     setSelectedCategory(null);
-                    setSelectedBenefits([]);
                   }}
                   className="btn btn-outline"
                 >
@@ -284,6 +264,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Contact Form */}
+      <ContactForm
+        isOpen={showContactForm}
+        onClose={() => setShowContactForm(false)}
+        companyId={selectedCompany || undefined}
+      />
 
       {/* Footer */}
       <footer className="mt-16 glass-effect rounded-t-[3rem] shadow-soft py-12 px-4 md:px-0">
