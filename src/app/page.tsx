@@ -6,6 +6,9 @@ import Link from 'next/link';
 
 const ITEMS_PER_PAGE = 30;
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
