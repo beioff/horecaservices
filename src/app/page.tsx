@@ -160,9 +160,8 @@ export default function Home() {
               {paginatedCompanies.map((company, index) => (
                 <div
                   key={company.id}
-                  className={`card p-8 hover-card cursor-pointer ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+                  className={`card p-8 hover-card ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
                   style={{ animationDelay: `${index * 100}ms` }}
-                  onClick={() => window.location.href = `/companies/${company.id}`}
                 >
                   <div className="flex items-center mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-beige-50 mr-6 overflow-hidden">
@@ -197,9 +196,8 @@ export default function Home() {
                     </div>
                   )}
                   <Link
-                    href={`/request-demo/${company.id}`}
+                    href={`/companies/${company.id}`}
                     className="btn btn-primary w-full hover-glow"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     {company.contactCta}
                   </Link>

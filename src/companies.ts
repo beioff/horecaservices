@@ -1,24 +1,5 @@
-export interface Category {
-  id: string;
-  name: string;
-}
-
-export interface Company {
-  id: string;
-  name: string;
-  logo: string;
-  category: string;
-  slogan: string;
-  shortDescription: string;
-  description: string;
-  benefits: string[];
-  bonus: string;
-  contactCta: string;
-  contactUrl: string;
-}
-
 // Категории компаний
-export const categories: Category[] = [
+export const categories = [
   { id: 'pos', name: 'POS и кассы' },
   { id: 'crm', name: 'CRM и маркетинг' },
   { id: 'delivery', name: 'Доставка и логистика' },
@@ -29,7 +10,7 @@ export const categories: Category[] = [
 ];
 
 // Компании (офферы)
-export const companies: Company[] = [
+export const companies = [
   {
     id: 'r_keeper',
     name: 'R-Keeper',
