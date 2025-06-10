@@ -4,15 +4,24 @@ import { useState, useEffect } from 'react';
 import { companies, categories } from '@/companies';
 import Link from 'next/link';
 
+const ITEMS_PER_PAGE = 30;
+
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedBenefits, setSelectedBenefits] = useState<string[]>([]);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  // Получаем все уникальные преимущества из компаний
+  const allBenefits = Array.from(
+    new Set(companies.flatMap(company => company.benefits))
+  );
 
   const filteredCompanies = companies
     .filter((company) => !selectedCategory || company.category === selectedCategory)
@@ -21,7 +30,31 @@ export default function Home() {
       company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       company.slogan.toLowerCase().includes(searchQuery.toLowerCase()) ||
       company.shortDescription.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((company) => 
+      selectedBenefits.length === 0 || 
+      selectedBenefits.some(benefit => company.benefits.includes(benefit))
     );
+
+  const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
+  const paginatedCompanies = filteredCompanies.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleBenefit = (benefit: string) => {
+    setSelectedBenefits(prev => 
+      prev.includes(benefit)
+        ? prev.filter(b => b !== benefit)
+        : [...prev, benefit]
+    );
+    setCurrentPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -29,7 +62,7 @@ export default function Home() {
       <header className="glass-effect sticky top-0 z-50 rounded-b-[3rem] shadow-soft py-8 px-4 md:px-8">
         <div className="container-custom flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-4">
-            <span className="text-3xl font-extrabold gradient-text tracking-tight rounded-2xl px-6 py-3 bg-beige-100/50 hover:bg-beige-100 transition-colors duration-200">
+            <span className="text-3xl font-extrabold gradient-text tracking-tight rounded-2xl px-6 py-3 bg-beige-100/50 hover:bg-beige-100 transition-colors duration-200 animate-float">
               HoReCa
             </span>
             <span className="hidden md:inline text-neutral-600 text-xl font-medium">
@@ -61,7 +94,7 @@ export default function Home() {
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="btn btn-outline flex items-center gap-3"
+              className="btn btn-outline flex items-center gap-3 md:hidden"
             >
               <svg
                 className="w-6 h-6"
@@ -82,29 +115,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Filters Panel */}
-      <div className={`container-custom transition-all duration-500 overflow-hidden ${showFilters ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="py-8">
-          <div className="flex flex-wrap gap-4">
-            <button
-              className={`btn ${selectedCategory === null ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setSelectedCategory(null)}
-            >
-              Все
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                className={`btn ${selectedCategory === category.id ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                {category.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Hero Section */}
       <section className="container-custom section text-center">
         <div className={`max-w-5xl mx-auto ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
@@ -118,7 +128,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a
               href="#offers"
-              className="btn btn-primary"
+              className="btn btn-primary hover-glow"
             >
               Смотреть предложения
             </a>
@@ -129,76 +139,150 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Offers Section */}
+      {/* Main Content */}
       <section id="offers" className="container-custom section">
-        <div className="flex items-center justify-between mb-16">
-          <h2>Актуальные предложения</h2>
-          <div className="text-neutral-600 text-xl">
-            Найдено: {filteredCompanies.length}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-          {filteredCompanies.map((company, index) => (
-            <div
-              key={company.id}
-              className={`card p-8 hover-card ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="flex items-center mb-6">
-                <div className="w-16 h-16 rounded-2xl bg-beige-50 mr-6 overflow-hidden">
-                  <img
-                    src={company.logo}
-                    alt={company.name}
-                    className="w-full h-full object-contain p-3"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-neutral-900 mb-2">{company.name}</h3>
-                  <span className="tag tag-primary">
-                    {categories.find(c => c.id === company.category)?.name}
-                  </span>
-                </div>
-              </div>
-              <div className="mb-4 text-xl text-neutral-800 font-semibold">{company.slogan}</div>
-              <div className="mb-6 text-neutral-600">{company.shortDescription}</div>
-              <div className="flex flex-wrap gap-3 mb-6">
-                {company.benefits.map((benefit, idx) => (
-                  <span
-                    key={idx}
-                    className="tag"
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Filters Sidebar */}
+          <div className="lg:w-80 flex-shrink-0">
+            <div className="filter-panel sticky top-32">
+              <div className="filter-group">
+                <h3 className="filter-title">Категории</h3>
+                <button
+                  className={`filter-option w-full ${selectedCategory === null ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  Все категории
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    className={`filter-option w-full ${selectedCategory === category.id ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory(category.id)}
                   >
-                    {benefit}
-                  </span>
+                    {category.name}
+                  </button>
                 ))}
               </div>
-              {company.bonus && (
-                <div className="bg-primary/10 text-primary rounded-2xl px-6 py-4 mb-6 text-lg font-medium">
-                  {company.bonus}
-                </div>
-              )}
-              <Link
-                href={`/companies/${company.id}`}
-                className="btn btn-primary w-full"
-              >
-                {company.contactCta}
-              </Link>
+
+              <div className="filter-group mt-8">
+                <h3 className="filter-title">Преимущества</h3>
+                {allBenefits.map((benefit) => (
+                  <button
+                    key={benefit}
+                    className={`filter-option w-full ${selectedBenefits.includes(benefit) ? 'active' : ''}`}
+                    onClick={() => toggleBenefit(benefit)}
+                  >
+                    {benefit}
+                  </button>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-        {filteredCompanies.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-neutral-400 text-xl mb-6">Ничего не найдено</div>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory(null);
-              }}
-              className="btn btn-outline"
-            >
-              Сбросить фильтры
-            </button>
           </div>
-        )}
+
+          {/* Companies Grid */}
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-8">
+              <h2>Актуальные предложения</h2>
+              <div className="text-neutral-600 text-xl">
+                Найдено: {filteredCompanies.length}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {paginatedCompanies.map((company, index) => (
+                <div
+                  key={company.id}
+                  className={`card p-8 hover-card ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 rounded-2xl bg-beige-50 mr-6 overflow-hidden">
+                      <img
+                        src={company.logo}
+                        alt={company.name}
+                        className="w-full h-full object-contain p-3"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-neutral-900 mb-2">{company.name}</h3>
+                      <span className="tag tag-primary">
+                        {categories.find(c => c.id === company.category)?.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mb-4 text-xl text-neutral-800 font-semibold">{company.slogan}</div>
+                  <div className="mb-6 text-neutral-600">{company.shortDescription}</div>
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    {company.benefits.map((benefit, idx) => (
+                      <span
+                        key={idx}
+                        className="tag"
+                      >
+                        {benefit}
+                      </span>
+                    ))}
+                  </div>
+                  {company.bonus && (
+                    <div className="bg-primary/10 text-primary rounded-2xl px-6 py-4 mb-6 text-lg font-medium">
+                      {company.bonus}
+                    </div>
+                  )}
+                  <Link
+                    href={`/companies/${company.id}`}
+                    className="btn btn-primary w-full hover-glow"
+                  >
+                    {company.contactCta}
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  className="pagination-button"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  ←
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  className="pagination-button"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  →
+                </button>
+              </div>
+            )}
+
+            {filteredCompanies.length === 0 && (
+              <div className="text-center py-16">
+                <div className="text-neutral-400 text-xl mb-6">Ничего не найдено</div>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory(null);
+                    setSelectedBenefits([]);
+                  }}
+                  className="btn btn-outline"
+                >
+                  Сбросить фильтры
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
