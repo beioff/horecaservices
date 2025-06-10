@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { companies, categories } from '@/companies';
 import Link from 'next/link';

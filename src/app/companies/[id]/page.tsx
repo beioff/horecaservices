@@ -1,6 +1,12 @@
 import { companies } from '@/companies';
 import { notFound } from 'next/navigation';
 
+export function generateStaticParams() {
+  return companies.map((company) => ({
+    id: company.id,
+  }));
+}
+
 export default function CompanyPage({ params }: { params: { id: string } }) {
   const company = companies.find((c) => c.id === params.id);
 
