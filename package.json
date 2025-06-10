@@ -5,9 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node --loader ts-node/esm src/bot/index.ts",
-    "lint": "next lint",
-    "export": "next build && next export"
+    "start": "ts-node src/bot/index.ts",
+    "lint": "next lint"
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",

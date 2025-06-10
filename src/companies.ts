@@ -27,7 +27,6 @@ export const companies = [
     bonus: 'Скидка 10% на первый месяц при заявке через агрегатор',
     contactCta: 'Оставить заявку',
     contactUrl: '#',
-    companyId: 'r_keeper'
   },
   {
     id: 'iiko',
@@ -45,7 +44,6 @@ export const companies = [
     bonus: '',
     contactCta: 'Запросить демо',
     contactUrl: '#',
-    companyId: 'iiko'
   },
   {
     id: 'delivery_club',
@@ -63,6 +61,5 @@ export const companies = [
     bonus: 'Первые 10 заказов без комиссии',
     contactCta: 'Оставить заявку',
     contactUrl: '#',
-    companyId: 'delivery_club'
   },
 ]; 
