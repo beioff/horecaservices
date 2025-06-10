@@ -2,7 +2,11 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { companies } from '../companies.ts';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
+const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -24,8 +28,12 @@ const COMPANIES_FILE = path.join(__dirname, '../../src/companies.ts');
 
 export async function addOffer(offer: Offer): Promise<void> {
   try {
+    console.log('Adding new offer:', offer);
+    console.log('Companies file path:', COMPANIES_FILE);
+    
     // Read current companies file
     const content = await fs.readFile(COMPANIES_FILE, 'utf-8');
+    console.log('Current file content length:', content.length);
     
     // Find the companies array
     const companiesMatch = content.match(/export const companies = \[([\s\S]*?)\];/);
@@ -56,8 +64,27 @@ export async function addOffer(offer: Offer): Promise<void> {
       `export const companies = [${newCompany}$1];`
     );
 
+    console.log('New content length:', newContent.length);
+    
     // Write back to file
     await fs.writeFile(COMPANIES_FILE, newContent, 'utf-8');
+    console.log('File written successfully');
+
+    // Trigger Next.js build and deploy
+    try {
+      console.log('Building and deploying...');
+      const { stdout: buildStdout, stderr: buildStderr } = await execAsync('npm run build');
+      console.log('Build output:', buildStdout);
+      if (buildStderr) console.error('Build errors:', buildStderr);
+
+      const { stdout: deployStdout, stderr: deployStderr } = await execAsync('git add . && git commit -m "Add new offer" && git push');
+      console.log('Deploy output:', deployStdout);
+      if (deployStderr) console.error('Deploy errors:', deployStderr);
+      
+      console.log('Build and deploy completed');
+    } catch (error) {
+      console.error('Error during build and deploy:', error);
+    }
   } catch (error) {
     console.error('Error adding offer:', error);
     throw error;

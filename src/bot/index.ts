@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import path from 'path';
 import fs from 'fs/promises';
-import { categories } from '../companies';
-import { addOffer, deleteOffer, updateOffer } from './offers';
+import { categories } from '../companies.ts';
+import { addOffer, deleteOffer, updateOffer } from './offers.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,6 +45,19 @@ interface TempOffer {
 const tempOffers = new Map<number, Partial<TempOffer>>();
 const userStates = new Map<number, string>();
 
+// Function to show main menu
+async function showMainMenu(chatId: number) {
+  await bot.sendMessage(chatId, 'Выберите действие:', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '➕ Добавить новый оффер', callback_data: 'new_offer' }],
+        [{ text: '🗑 Удалить оффер', callback_data: 'delete_offer' }],
+        [{ text: '📝 Редактировать оффер', callback_data: 'edit_offer' }]
+      ]
+    }
+  });
+}
+
 // Handle /start command
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
@@ -53,6 +66,7 @@ bot.onText(/\/start/, async (msg) => {
   if (chatId === OWNER_ID) {
     authorizedUsers.add(chatId);
     await bot.sendMessage(chatId, 'Вы авторизованы как владелец бота.');
+    await showMainMenu(chatId);
     return;
   }
 
@@ -76,6 +90,7 @@ bot.onText(/\/start/, async (msg) => {
   }
 
   await bot.sendMessage(chatId, 'Вы уже авторизованы!');
+  await showMainMenu(chatId);
 });
 
 // Handle /newoffer command
@@ -142,6 +157,33 @@ bot.on('callback_query', async (callbackQuery) => {
     authorizedUsers.add(targetUserId);
     await bot.sendMessage(OWNER_ID, `Пользователь ${targetUserId} успешно авторизован.`);
     await bot.sendMessage(targetUserId, 'Авторизация успешна!');
+    await showMainMenu(targetUserId);
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } else if (data === 'new_offer') {
+    // Initialize new offer
+    tempOffers.set(chatId, {
+      id: '',
+      name: '',
+      logo: '',
+      category: '',
+      slogan: '',
+      shortDescription: '',
+      description: '',
+      benefits: [],
+      bonus: '',
+      contactCta: '',
+      contactUrl: ''
+    });
+    userStates.set(chatId, 'waiting_for_name');
+    await bot.sendMessage(chatId, 'Введите название компании:');
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } else if (data === 'delete_offer') {
+    const companiesList = categories.map(c => `ID: ${c.id} - ${c.name}`).join('\n');
+    await bot.sendMessage(chatId, `Введите ID оффера для удаления:\n\n${companiesList}`);
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } else if (data === 'edit_offer') {
+    const companiesList = categories.map(c => `ID: ${c.id} - ${c.name}`).join('\n');
+    await bot.sendMessage(chatId, `Введите ID оффера для редактирования:\n\n${companiesList}`);
     await bot.answerCallbackQuery(callbackQuery.id);
   } else if (data.startsWith('category_')) {
     const categoryId = data.split('_')[1];
@@ -158,13 +200,15 @@ bot.on('callback_query', async (callbackQuery) => {
     const tempOffer = tempOffers.get(chatId);
     if (tempOffer) {
       try {
+        console.log('Attempting to publish offer:', tempOffer);
         await addOffer(tempOffer as TempOffer);
+        console.log('Offer published successfully');
         await bot.sendMessage(chatId, 'Оффер успешно опубликован!');
         tempOffers.delete(chatId);
         userStates.delete(chatId);
       } catch (error) {
-        await bot.sendMessage(chatId, 'Ошибка при публикации оффера. Попробуйте еще раз.');
         console.error('Error publishing offer:', error);
+        await bot.sendMessage(chatId, `Ошибка при публикации оффера: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
       }
     }
     await bot.answerCallbackQuery(callbackQuery.id);

@@ -10,7 +10,37 @@ export const categories = [
 ];
 
 // Компании (офферы)
-export const companies = [
+export const companies = [  {
+    id: '_________',
+    name: 'ававаавав',
+    logo: '/logos/_________.png',
+    category: 'equipment',
+    slogan: 'авааав',
+    shortDescription: 'ававваа',
+    description: 'аваавав',
+    benefits: [
+      'авав'
+    ],
+    bonus: '',
+    contactCta: 'аваав',
+    contactUrl: '#',
+  },  {
+    id: '____',
+    name: 'Куку',
+    logo: '/logos/____.png',
+    category: 'equipment',
+    slogan: 'ЛЛЛЛ',
+    shortDescription: 'ааааа',
+    description: 'аааааа',
+    benefits: [
+      'ававав',
+      'ававаав',
+      'ававав'
+    ],
+    bonus: '',
+    contactCta: 'Узнать',
+    contactUrl: '#',
+  },
   {
     id: 'r_keeper',
     name: 'R-Keeper',
