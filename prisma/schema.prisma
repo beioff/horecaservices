@@ -13,27 +13,3 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-model Company {
-  id              String   @id @default(cuid())
-  name            String
-  logo            String
-  category        String
-  slogan          String
-  shortDescription String
-  description     String
-  benefits        String[] // Stored as JSON array
-  bonus           String?
-  contactCta      String
-  contactUrl      String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model AdminAuth {
-  id        String   @id @default(cuid())
-  password  String   // One-time password
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  expiresAt DateTime // Password expiration time
-}

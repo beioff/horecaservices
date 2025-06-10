@@ -1,182 +1,290 @@
-import { Telegraf, session } from 'telegraf';
-import { PrismaClient } from '@prisma/client';
-import { generateOneTimePassword } from '../utils/auth';
+import TelegramBot from 'node-telegram-bot-api';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import path from 'path';
+import { categories } from '../companies';
+import { addOffer, deleteOffer, getOffers } from './offers';
 
-const prisma = new PrismaClient();
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// Extend session interface
-interface BotSession {
-  isAuthenticated: boolean;
-  currentCompany?: {
-    id?: string;
-    name?: string;
-    logo?: string;
-    category?: string;
-    slogan?: string;
-    shortDescription?: string;
-    description?: string;
-    benefits?: string[];
-    bonus?: string;
-    contactCta?: string;
-    contactUrl?: string;
-  };
+dotenv.config();
+
+// Initialize bot with your token
+const token = process.env.TELEGRAM_BOT_TOKEN;
+if (!token) {
+  throw new Error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
 }
 
-// Initialize session
-bot.use(session());
+const bot = new TelegramBot(token, { polling: true });
 
-// Authentication middleware
-const requireAuth = async (ctx: any, next: () => Promise<void>) => {
-  if (!ctx.session.isAuthenticated) {
-    await ctx.reply('Пожалуйста, авторизуйтесь с помощью команды /auth');
-    return;
-  }
-  return next();
-};
+// Store authorized users
+const authorizedUsers = new Set<number>();
 
-// Generate and send one-time password
-bot.command('generate_password', async (ctx) => {
-  const password = generateOneTimePassword();
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+// Owner's Telegram ID
+const OWNER_ID = parseInt(process.env.TELEGRAM_OWNER_ID || '217431589');
 
-  await prisma.adminAuth.create({
-    data: {
-      password,
-      expiresAt,
-    },
-  });
+// Store temporary offer data
+interface TempOffer {
+  id: string;
+  name: string;
+  logo: string;
+  category: string;
+  slogan: string;
+  shortDescription: string;
+  description: string;
+  benefits: string[];
+  bonus: string;
+  contactCta: string;
+  contactUrl: string;
+  companyId: string;
+}
 
-  // In production, send this to admin's email or secure channel
-  await ctx.reply(`Одноразовый пароль: ${password}\nДействителен 15 минут`);
-});
+const tempOffers = new Map<number, Partial<TempOffer>>();
 
-// Authentication command
-bot.command('auth', async (ctx) => {
-  const password = ctx.message.text.split(' ')[1];
-  if (!password) {
-    await ctx.reply('Пожалуйста, укажите пароль: /auth <пароль>');
-    return;
-  }
-
-  const auth = await prisma.adminAuth.findFirst({
-    where: {
-      password,
-      used: false,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-  });
-
-  if (!auth) {
-    await ctx.reply('Неверный или просроченный пароль');
-    return;
-  }
-
-  await prisma.adminAuth.update({
-    where: { id: auth.id },
-    data: { used: true },
-  });
-
-  ctx.session.isAuthenticated = true;
-  await ctx.reply('Авторизация успешна!');
-});
-
-// Start adding new company
-bot.command('add_company', requireAuth, async (ctx) => {
-  ctx.session.currentCompany = {};
-  await ctx.reply('Введите название компании:');
-});
-
-// Handle company data input
-bot.on('text', requireAuth, async (ctx) => {
-  const company = ctx.session.currentCompany;
-  if (!company) return;
-
-  if (!company.name) {
-    company.name = ctx.message.text;
-    await ctx.reply('Введите URL логотипа:');
-  } else if (!company.logo) {
-    company.logo = ctx.message.text;
-    await ctx.reply('Выберите категорию:', {
-      reply_markup: {
-        keyboard: [
-          ['POS и кассы', 'CRM и маркетинг'],
-          ['Доставка и логистика', 'Онлайн-оплата'],
-          ['Оборудование', 'Кадровые решения'],
-          ['Обучение и франшизы'],
-        ],
-      },
-    });
-  } else if (!company.category) {
-    company.category = ctx.message.text;
-    await ctx.reply('Введите слоган:');
-  } else if (!company.slogan) {
-    company.slogan = ctx.message.text;
-    await ctx.reply('Введите краткое описание:');
-  } else if (!company.shortDescription) {
-    company.shortDescription = ctx.message.text;
-    await ctx.reply('Введите полное описание:');
-  } else if (!company.description) {
-    company.description = ctx.message.text;
-    await ctx.reply('Введите преимущества (каждое с новой строки):');
-  } else if (!company.benefits) {
-    company.benefits = ctx.message.text.split('\n');
-    await ctx.reply('Введите бонус (или отправьте "-" если нет):');
-  } else if (!company.bonus) {
-    company.bonus = ctx.message.text === '-' ? '' : ctx.message.text;
-    await ctx.reply('Введите текст кнопки контакта:');
-  } else if (!company.contactCta) {
-    company.contactCta = ctx.message.text;
-    await ctx.reply('Введите URL для контакта:');
-  } else if (!company.contactUrl) {
-    company.contactUrl = ctx.message.text;
-    
-    // Save company to database
-    await prisma.company.create({
-      data: {
-        name: company.name,
-        logo: company.logo,
-        category: company.category,
-        slogan: company.slogan,
-        shortDescription: company.shortDescription,
-        description: company.description,
-        benefits: company.benefits,
-        bonus: company.bonus,
-        contactCta: company.contactCta,
-        contactUrl: company.contactUrl,
-      },
-    });
-
-    await ctx.reply('Компания успешно добавлена!');
-    ctx.session.currentCompany = undefined;
-  }
-});
-
-// List all companies
-bot.command('list_companies', requireAuth, async (ctx) => {
-  const companies = await prisma.company.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
-
-  if (companies.length === 0) {
-    await ctx.reply('Нет добавленных компаний');
-    return;
-  }
-
-  const message = companies
-    .map((c) => `${c.name} (${c.category})\nID: ${c.id}`)
-    .join('\n\n');
+// Handle /start command
+bot.onText(/\/start/, async (msg) => {
+  const chatId = msg.chat.id;
   
-  await ctx.reply(message);
+  // If this is the owner, authorize immediately
+  if (chatId === OWNER_ID) {
+    authorizedUsers.add(chatId);
+    await bot.sendMessage(chatId, 'Вы авторизованы как владелец бота.');
+    return;
+  }
+
+  // If user is not authorized, send request to owner
+  if (!authorizedUsers.has(chatId)) {
+    // Send login request to owner
+    await bot.sendMessage(OWNER_ID, `Новый запрос на авторизацию от пользователя ${msg.from?.username || chatId}`);
+    await bot.sendMessage(OWNER_ID, 'Для авторизации пользователя, нажмите кнопку:', {
+      reply_markup: {
+        inline_keyboard: [[
+          { 
+            text: 'Авторизовать пользователя', 
+            callback_data: `auth_${chatId}`
+          }
+        ]]
+      }
+    });
+
+    await bot.sendMessage(chatId, 'Запрос на авторизацию отправлен владельцу бота. Пожалуйста, подождите.');
+    return;
+  }
+
+  await bot.sendMessage(chatId, 'Вы уже авторизованы!');
 });
 
-// Start the bot
-bot.launch().then(() => {
-  console.log('Bot started');
+// Handle /newoffer command
+bot.onText(/\/newoffer/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  if (!authorizedUsers.has(chatId)) {
+    await bot.sendMessage(chatId, 'Вы не авторизованы.');
+    return;
+  }
+
+  // Initialize new offer
+  tempOffers.set(chatId, {
+    id: '',
+    name: '',
+    logo: '',
+    category: '',
+    slogan: '',
+    shortDescription: '',
+    description: '',
+    benefits: [],
+    bonus: '',
+    contactCta: '',
+    contactUrl: '',
+    companyId: ''
+  });
+
+  // Start with company ID
+  await bot.sendMessage(chatId, 'Введите идентификатор компании (например, r_keeper):');
 });
 
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM')); 
+// Handle callback queries (button clicks)
+bot.on('callback_query', async (callbackQuery) => {
+  if (!callbackQuery.message || !callbackQuery.data) return;
+
+  const chatId = callbackQuery.message.chat.id;
+  const data = callbackQuery.data;
+
+  if (data.startsWith('auth_') && chatId === OWNER_ID) {
+    const targetUserId = parseInt(data.split('_')[1]);
+
+    authorizedUsers.add(targetUserId);
+    await bot.sendMessage(OWNER_ID, `Пользователь ${targetUserId} успешно авторизован.`);
+    await bot.sendMessage(targetUserId, 'Авторизация успешна!');
+    
+    // Answer callback query to remove loading state
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } else if (data.startsWith('category_')) {
+    const categoryId = data.split('_')[1];
+    const tempOffer = tempOffers.get(chatId);
+    
+    if (tempOffer) {
+      tempOffer.category = categoryId;
+      await bot.sendMessage(chatId, 'Введите краткое описание компании:');
+    }
+    
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } else if (data === 'publish_offer') {
+    const tempOffer = tempOffers.get(chatId);
+    if (tempOffer) {
+      try {
+        await addOffer(tempOffer as TempOffer);
+        await bot.sendMessage(chatId, 'Оффер успешно опубликован!');
+        tempOffers.delete(chatId);
+      } catch (error) {
+        await bot.sendMessage(chatId, 'Ошибка при публикации оффера. Попробуйте еще раз.');
+        console.error('Error publishing offer:', error);
+      }
+    }
+    await bot.answerCallbackQuery(callbackQuery.id);
+  } else if (data === 'restart_offer') {
+    tempOffers.delete(chatId);
+    await bot.sendMessage(chatId, 'Создание оффера начато заново. Введите название компании:');
+    await bot.answerCallbackQuery(callbackQuery.id);
+  }
+});
+
+// Handle /deleteoffer command
+bot.onText(/\/deleteoffer (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  
+  if (!authorizedUsers.has(chatId)) {
+    await bot.sendMessage(chatId, 'Вы не авторизованы.');
+    return;
+  }
+
+  const offerId = match?.[1];
+  if (!offerId) {
+    await bot.sendMessage(chatId, 'Пожалуйста, укажите ID оффера для удаления.');
+    return;
+  }
+
+  try {
+    await deleteOffer(offerId);
+    await bot.sendMessage(chatId, `Оффер ${offerId} успешно удален!`);
+  } catch (error) {
+    await bot.sendMessage(chatId, 'Ошибка при удалении оффера. Проверьте ID и попробуйте снова.');
+    console.error('Error deleting offer:', error);
+  }
+});
+
+// Handle /listoffers command
+bot.onText(/\/listoffers/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  if (!authorizedUsers.has(chatId)) {
+    await bot.sendMessage(chatId, 'Вы не авторизованы.');
+    return;
+  }
+
+  const offers = await getOffers();
+  if (offers.length === 0) {
+    await bot.sendMessage(chatId, 'Нет доступных офферов.');
+    return;
+  }
+
+  const offersList = offers.map(offer => 
+    `ID: ${offer.id}\nНазвание: ${offer.name}\nКатегория: ${categories.find(c => c.id === offer.category)?.name}\n\n`
+  ).join('---\n');
+
+  await bot.sendMessage(chatId, `Список офферов:\n\n${offersList}\n\nДля удаления оффера используйте команду /deleteoffer <ID>`);
+});
+
+// Handle text messages for offer creation
+bot.on('message', async (msg) => {
+  if (!msg.text || !authorizedUsers.has(msg.chat.id)) return;
+
+  const chatId = msg.chat.id;
+  const tempOffer = tempOffers.get(chatId);
+
+  if (!tempOffer) return;
+
+  // Handle offer creation step by step
+  if (!tempOffer.companyId) {
+    tempOffer.companyId = msg.text;
+    await bot.sendMessage(chatId, 'Введите название компании:');
+  } else if (!tempOffer.name) {
+    tempOffer.name = msg.text;
+    tempOffer.id = msg.text.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    await bot.sendMessage(chatId, 'Введите слоган компании:');
+  } else if (!tempOffer.slogan) {
+    tempOffer.slogan = msg.text;
+    await bot.sendMessage(chatId, 'Выберите категорию:', {
+      reply_markup: {
+        inline_keyboard: categories.map(cat => [{
+          text: cat.name,
+          callback_data: `category_${cat.id}`
+        }])
+      }
+    });
+  } else if (!tempOffer.category) {
+    // Category is handled by callback
+    return;
+  } else if (!tempOffer.shortDescription) {
+    tempOffer.shortDescription = msg.text;
+    await bot.sendMessage(chatId, 'Введите полное описание компании:');
+  } else if (!tempOffer.description) {
+    tempOffer.description = msg.text;
+    await bot.sendMessage(chatId, 'Введите преимущества компании (по одному в сообщении, отправьте /done когда закончите):');
+  } else if (!tempOffer.benefits) {
+    if (msg.text === '/done') {
+      await bot.sendMessage(chatId, 'Введите бонусное предложение (или отправьте /skip если нет):');
+    } else {
+      if (!tempOffer.benefits) tempOffer.benefits = [];
+      tempOffer.benefits.push(msg.text);
+      await bot.sendMessage(chatId, 'Введите следующее преимущество или отправьте /done когда закончите:');
+    }
+  } else if (!tempOffer.bonus) {
+    if (msg.text === '/skip') {
+      tempOffer.bonus = '';
+    } else {
+      tempOffer.bonus = msg.text;
+    }
+    await bot.sendMessage(chatId, 'Введите текст кнопки для связи (например, "Оставить заявку"):');
+  } else if (!tempOffer.contactCta) {
+    tempOffer.contactCta = msg.text;
+    await bot.sendMessage(chatId, 'Введите URL для кнопки связи (или отправьте /skip если нет):');
+  } else if (!tempOffer.contactUrl) {
+    if (msg.text === '/skip') {
+      tempOffer.contactUrl = '#';
+    } else {
+      tempOffer.contactUrl = msg.text;
+    }
+    
+    // Show final offer for review
+    const offer = tempOffers.get(chatId);
+    if (offer) {
+      await bot.sendMessage(chatId, 'Проверьте данные оффера:', {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: '✅ Опубликовать', callback_data: 'publish_offer' }],
+            [{ text: '🔄 Начать заново', callback_data: 'restart_offer' }]
+          ]
+        }
+      });
+      
+      // Send offer details
+      await bot.sendMessage(chatId, 
+        `*Название:* ${offer.name}\n` +
+        `*Слоган:* ${offer.slogan}\n` +
+        `*Категория:* ${categories.find(c => c.id === offer.category)?.name}\n` +
+        `*Краткое описание:* ${offer.shortDescription}\n` +
+        `*Полное описание:* ${offer.description}\n` +
+        `*Преимущества:*\n${offer.benefits?.map(b => `- ${b}`).join('\n')}\n` +
+        `*Бонус:* ${offer.bonus || 'Нет'}\n` +
+        `*Кнопка связи:* ${offer.contactCta}\n` +
+        `*URL кнопки:* ${offer.contactUrl}`,
+        { parse_mode: 'Markdown' }
+      );
+    }
+  }
+});
+
+console.log('Bot is running...'); 
