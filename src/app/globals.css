@@ -3,18 +3,61 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Основные цвета */
+  --color-primary: #E63946;    /* Красный */
+  --color-secondary: #F1FAEE;  /* Бежевый */
+  --color-dark: #1D3557;      /* Тёмно-синий (почти чёрный) */
+  --color-light: #F8F9FA;     /* Светло-серый */
+  --color-gray: #6C757D;      /* Серый */
+  
+  /* Фоновые цвета */
+  --background: #FFFFFF;
+  --foreground: #1D3557;
+  
+  /* Градиенты */
+  --gradient-primary: linear-gradient(135deg, #E63946 0%, #FF6B6B 100%);
+  --gradient-dark: linear-gradient(135deg, #1D3557 0%, #2B2D42 100%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-white text-dark antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-dark;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-dark hover:bg-secondary/90;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .input {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200;
+  }
 }
+
+/* Анимации */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+

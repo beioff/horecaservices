@@ -1,5 +1,6 @@
 import { companies } from '@/companies';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 
 export function generateStaticParams() {
   return companies.map((company) => ({
@@ -15,27 +16,90 @@ export default function CompanyPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">{company.name}</h1>
-      <p className="text-xl text-gray-600 mb-4">{company.slogan}</p>
-      <p className="mb-4">{company.description}</p>
-      <h2 className="text-2xl font-semibold mb-2">Преимущества:</h2>
-      <ul className="list-disc pl-5 mb-4">
-        {company.benefits.map((benefit, index) => (
-          <li key={index}>{benefit}</li>
-        ))}
-      </ul>
-      {company.bonus && (
-        <div className="bg-yellow-100 p-4 rounded-lg mb-4">
-          <p className="font-semibold">Бонус: {company.bonus}</p>
+    <div className="min-h-screen bg-light">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-dark to-dark/90 text-white py-20">
+        <div className="container mx-auto px-4">
+          <Link 
+            href="/"
+            className="inline-flex items-center text-gray-300 hover:text-white mb-8 transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Назад к каталогу
+          </Link>
+          <div className="flex items-center mb-6">
+            <img
+              src={company.logo}
+              alt={company.name}
+              className="w-20 h-20 object-contain mr-6 bg-white rounded-xl p-2"
+            />
+            <div>
+              <h1 className="text-4xl font-bold mb-2">{company.name}</h1>
+              <p className="text-xl text-gray-300">{company.slogan}</p>
+            </div>
+          </div>
         </div>
-      )}
-      <a
-        href={company.contactUrl}
-        className="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600"
-      >
-        {company.contactCta}
-      </a>
+      </div>
+
+      {/* Content Section */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-soft p-8 mb-8">
+              <h2 className="text-2xl font-bold mb-4">О компании</h2>
+              <p className="text-gray-700 leading-relaxed">{company.description}</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-soft p-8">
+              <h2 className="text-2xl font-bold mb-6">Преимущества</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {company.benefits.map((benefit, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start p-4 bg-secondary rounded-xl"
+                  >
+                    <svg
+                      className="w-6 h-6 text-primary mr-3 mt-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="text-dark">{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-soft p-8 sticky top-8">
+              {company.bonus && (
+                <div className="bg-primary/10 text-primary rounded-xl p-6 mb-6">
+                  <h3 className="font-bold text-lg mb-2">Специальное предложение</h3>
+                  <p>{company.bonus}</p>
+                </div>
+              )}
+              <a
+                href={company.contactUrl}
+                className="btn btn-primary w-full text-center"
+              >
+                {company.contactCta}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 
