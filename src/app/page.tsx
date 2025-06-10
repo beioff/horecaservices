@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { companies, categories } from '@/companies';
-import ContactForm from '@/components/ContactForm';
+import Link from 'next/link';
 
 const ITEMS_PER_PAGE = 30;
 
@@ -12,8 +12,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showContactForm, setShowContactForm] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -37,16 +35,6 @@ export default function Home() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleCardClick = (companyId: string) => {
-    window.location.href = `/companies/${companyId}`;
-  };
-
-  const handleContactClick = (e: React.MouseEvent, companyId: string) => {
-    e.stopPropagation();
-    setSelectedCompany(companyId);
-    setShowContactForm(true);
   };
 
   return (
@@ -174,7 +162,7 @@ export default function Home() {
                   key={company.id}
                   className={`card p-8 hover-card cursor-pointer ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
                   style={{ animationDelay: `${index * 100}ms` }}
-                  onClick={() => handleCardClick(company.id)}
+                  onClick={() => window.location.href = `/companies/${company.id}`}
                 >
                   <div className="flex items-center mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-beige-50 mr-6 overflow-hidden">
@@ -208,12 +196,13 @@ export default function Home() {
                       {company.bonus}
                     </div>
                   )}
-                  <button
-                    onClick={(e) => handleContactClick(e, company.id)}
+                  <Link
+                    href={`/request-demo/${company.id}`}
                     className="btn btn-primary w-full hover-glow"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {company.contactCta}
-                  </button>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -264,13 +253,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Contact Form */}
-      <ContactForm
-        isOpen={showContactForm}
-        onClose={() => setShowContactForm(false)}
-        companyId={selectedCompany || undefined}
-      />
 
       {/* Footer */}
       <footer className="mt-16 glass-effect rounded-t-[3rem] shadow-soft py-12 px-4 md:px-0">
