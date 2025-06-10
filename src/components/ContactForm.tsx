@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 
 interface ContactFormProps {
@@ -12,136 +14,148 @@ export default function ContactForm({ isOpen, onClose, companyId }: ContactFormP
     phone: '',
     establishment: '',
     tasks: '',
-    preferredTime: '',
-    additionalInfo: ''
+    contactTime: '',
+    additionalInfo: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Добавить логику отправки формы
-    console.log('Form submitted:', { ...formData, companyId });
+    console.log('Form data:', { ...formData, companyId });
     onClose();
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold">Запрос на демо</h3>
-          <button
-            onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-600"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-soft overflow-hidden">
+        {/* Header */}
+        <div className="p-6 border-b border-neutral-100">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-neutral-900">Оставить заявку</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-neutral-100 rounded-xl transition-colors"
+            >
+              <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Имя
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="input"
-              placeholder="Введите ваше имя"
-              required
-            />
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-neutral-700 mb-1">
+                Ваше имя
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 rounded-xl border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="Иван Иванов"
+              />
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-neutral-700 mb-1">
+                Телефон
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 rounded-xl border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="+7 (999) 123-45-67"
+              />
+            </div>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Телефон
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="input"
-              placeholder="+7 (___) ___-__-__"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label htmlFor="establishment" className="block text-sm font-medium text-neutral-700 mb-1">
               Название заведения
             </label>
             <input
               type="text"
+              id="establishment"
               name="establishment"
               value={formData.establishment}
               onChange={handleChange}
-              className="input"
-              placeholder="Введите название вашего заведения"
               required
+              className="w-full px-4 py-2 rounded-xl border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              placeholder="Ресторан 'У Моря'"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Какие задачи хотите закрыть?
+            <label htmlFor="tasks" className="block text-sm font-medium text-neutral-700 mb-1">
+              Какие задачи нужно решить?
             </label>
             <textarea
+              id="tasks"
               name="tasks"
               value={formData.tasks}
               onChange={handleChange}
-              className="input min-h-[100px]"
-              placeholder="Опишите ваши задачи"
               required
+              rows={2}
+              className="w-full px-4 py-2 rounded-xl border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+              placeholder="Опишите кратко ваши задачи"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label htmlFor="contactTime" className="block text-sm font-medium text-neutral-700 mb-1">
               Удобное время для связи
             </label>
-            <input
-              type="text"
-              name="preferredTime"
-              value={formData.preferredTime}
+            <select
+              id="contactTime"
+              name="contactTime"
+              value={formData.contactTime}
               onChange={handleChange}
-              className="input"
-              placeholder="Например: будни с 10:00 до 18:00"
               required
-            />
+              className="w-full px-4 py-2 rounded-xl border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+            >
+              <option value="">Выберите время</option>
+              <option value="morning">Утро (9:00 - 12:00)</option>
+              <option value="day">День (12:00 - 17:00)</option>
+              <option value="evening">Вечер (17:00 - 21:00)</option>
+            </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label htmlFor="additionalInfo" className="block text-sm font-medium text-neutral-700 mb-1">
               Дополнительная информация
             </label>
             <textarea
+              id="additionalInfo"
               name="additionalInfo"
               value={formData.additionalInfo}
               onChange={handleChange}
-              className="input min-h-[100px]"
+              rows={2}
+              className="w-full px-4 py-2 rounded-xl border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
               placeholder="Любая дополнительная информация"
             />
           </div>
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-outline"
-            >
-              Отмена
-            </button>
+
+          <div className="pt-4">
             <button
               type="submit"
-              className="btn btn-primary"
+              className="w-full btn btn-primary hover-glow text-lg py-3"
             >
-              Отправить
+              Отправить заявку
             </button>
           </div>
         </form>
