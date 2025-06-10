@@ -26,23 +26,27 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <header className="glass-effect sticky top-0 z-50 rounded-b-[2rem] shadow-soft py-6 px-4 md:px-8">
-        <div className="container-custom flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-extrabold text-neutral-900 tracking-tight rounded-xl px-4 py-2 bg-beige-100 hover:bg-beige-200 transition-colors duration-200">HoReCa</span>
-            <span className="hidden md:inline text-neutral-600 text-lg font-medium ml-2">— услуги для вашего бизнеса</span>
+      <header className="glass-effect sticky top-0 z-50 rounded-b-[3rem] shadow-soft py-8 px-4 md:px-8">
+        <div className="container-custom flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-4">
+            <span className="text-3xl font-extrabold gradient-text tracking-tight rounded-2xl px-6 py-3 bg-beige-100/50 hover:bg-beige-100 transition-colors duration-200">
+              HoReCa
+            </span>
+            <span className="hidden md:inline text-neutral-600 text-xl font-medium">
+              — услуги для вашего бизнеса
+            </span>
           </div>
-          <div className="flex items-center gap-4 mt-4 md:mt-0">
+          <div className="flex items-center gap-6 mt-4 md:mt-0">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Поиск сервисов..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="input pl-10 pr-4 w-[200px] md:w-[300px]"
+                className="input pl-12 pr-6 w-[250px] md:w-[350px]"
               />
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400"
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-neutral-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -57,10 +61,10 @@ export default function Home() {
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="btn btn-outline flex items-center gap-2"
+              className="btn btn-outline flex items-center gap-3"
             >
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -79,9 +83,9 @@ export default function Home() {
       </header>
 
       {/* Filters Panel */}
-      <div className={`container-custom transition-all duration-300 overflow-hidden ${showFilters ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="py-4">
-          <div className="flex flex-wrap gap-3">
+      <div className={`container-custom transition-all duration-500 overflow-hidden ${showFilters ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="py-8">
+          <div className="flex flex-wrap gap-4">
             <button
               className={`btn ${selectedCategory === null ? 'btn-primary' : 'btn-outline'}`}
               onClick={() => setSelectedCategory(null)}
@@ -103,22 +107,22 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="container-custom section text-center">
-        <div className={`max-w-4xl mx-auto ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
-          <h1 className="mb-6 leading-tight">
+        <div className={`max-w-5xl mx-auto ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+          <h1 className="mb-8 leading-tight">
             B2B-решения для HoReCa<br />
-            <span className="text-primary">Сервисы и продукты для роста вашего бизнеса</span>
+            <span className="gradient-text">Сервисы и продукты для роста вашего бизнеса</span>
           </h1>
-          <p className="text-lg md:text-xl text-neutral-700 mb-8 rounded-2xl bg-beige-50/80 px-6 py-4 shadow-soft">
+          <p className="text-xl md:text-2xl text-neutral-700 mb-12 rounded-3xl bg-beige-50/80 px-8 py-6 shadow-soft">
             Найдите лучшие сервисы и продукты для автоматизации, маркетинга, доставки, оплаты и управления в сфере общественного питания.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <a
               href="#offers"
-              className="btn btn-primary text-lg"
+              className="btn btn-primary"
             >
               Смотреть предложения
             </a>
-            <button className="btn btn-outline text-lg">
+            <button className="btn btn-outline">
               Узнать больше
             </button>
           </div>
@@ -127,37 +131,37 @@ export default function Home() {
 
       {/* Offers Section */}
       <section id="offers" className="container-custom section">
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center justify-between mb-16">
           <h2>Актуальные предложения</h2>
-          <div className="text-neutral-600">
+          <div className="text-neutral-600 text-xl">
             Найдено: {filteredCompanies.length}
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {filteredCompanies.map((company, index) => (
             <div
               key={company.id}
-              className={`card p-6 ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+              className={`card p-8 hover-card ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 rounded-xl bg-beige-50 mr-4 overflow-hidden">
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-beige-50 mr-6 overflow-hidden">
                   <img
                     src={company.logo}
                     alt={company.name}
-                    className="w-full h-full object-contain p-2"
+                    className="w-full h-full object-contain p-3"
                   />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-neutral-900 mb-1">{company.name}</h3>
+                  <h3 className="text-2xl font-bold text-neutral-900 mb-2">{company.name}</h3>
                   <span className="tag tag-primary">
                     {categories.find(c => c.id === company.category)?.name}
                   </span>
                 </div>
               </div>
-              <div className="mb-2 text-neutral-800 font-semibold">{company.slogan}</div>
-              <div className="mb-4 text-neutral-600 text-sm">{company.shortDescription}</div>
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="mb-4 text-xl text-neutral-800 font-semibold">{company.slogan}</div>
+              <div className="mb-6 text-neutral-600">{company.shortDescription}</div>
+              <div className="flex flex-wrap gap-3 mb-6">
                 {company.benefits.map((benefit, idx) => (
                   <span
                     key={idx}
@@ -168,13 +172,13 @@ export default function Home() {
                 ))}
               </div>
               {company.bonus && (
-                <div className="bg-primary/10 text-primary rounded-xl px-4 py-2 mb-4 text-sm font-medium">
+                <div className="bg-primary/10 text-primary rounded-2xl px-6 py-4 mb-6 text-lg font-medium">
                   {company.bonus}
                 </div>
               )}
               <Link
                 href={`/companies/${company.id}`}
-                className="btn btn-primary w-full mt-auto"
+                className="btn btn-primary w-full"
               >
                 {company.contactCta}
               </Link>
@@ -182,8 +186,8 @@ export default function Home() {
           ))}
         </div>
         {filteredCompanies.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-neutral-400 text-lg mb-4">Ничего не найдено</div>
+          <div className="text-center py-16">
+            <div className="text-neutral-400 text-xl mb-6">Ничего не найдено</div>
             <button
               onClick={() => {
                 setSearchQuery('');
@@ -198,13 +202,17 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="mt-12 glass-effect rounded-t-[2rem] shadow-soft py-8 px-4 md:px-0">
-        <div className="container-custom flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-extrabold text-neutral-900 tracking-tight rounded-xl px-4 py-2 bg-beige-100 hover:bg-beige-200 transition-colors duration-200">HoReCa</span>
-            <span className="text-neutral-600 text-sm ml-2">— услуги для вашего бизнеса</span>
+      <footer className="mt-16 glass-effect rounded-t-[3rem] shadow-soft py-12 px-4 md:px-0">
+        <div className="container-custom flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-4">
+            <span className="text-2xl font-extrabold gradient-text tracking-tight rounded-2xl px-6 py-3 bg-beige-100/50 hover:bg-beige-100 transition-colors duration-200">
+              HoReCa
+            </span>
+            <span className="text-neutral-600 text-lg">
+              — услуги для вашего бизнеса
+            </span>
           </div>
-          <div className="flex gap-4 mt-4 md:mt-0">
+          <div className="flex gap-6 mt-4 md:mt-0">
             <a href="https://github.com/beioff/horecaservices" target="_blank" rel="noopener noreferrer" className="nav-link">
               GitHub
             </a>
@@ -212,7 +220,7 @@ export default function Home() {
               Предложения
             </a>
           </div>
-          <div className="text-neutral-400 text-xs mt-4 md:mt-0">© {new Date().getFullYear()} HoReCa. Все права защищены.</div>
+          <div className="text-neutral-400 text-sm mt-4 md:mt-0">© {new Date().getFullYear()} HoReCa. Все права защищены.</div>
         </div>
       </footer>
     </div>

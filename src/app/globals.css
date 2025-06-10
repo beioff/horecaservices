@@ -44,27 +44,29 @@
   }
 
   h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl;
+    @apply text-5xl md:text-6xl lg:text-7xl;
   }
 
   h2 {
-    @apply text-3xl md:text-4xl lg:text-5xl;
+    @apply text-4xl md:text-5xl lg:text-6xl;
   }
 
   h3 {
-    @apply text-2xl md:text-3xl;
+    @apply text-2xl md:text-3xl lg:text-4xl;
   }
 
   p {
-    @apply leading-relaxed;
+    @apply leading-relaxed text-lg;
   }
 }
 
 @layer components {
   .btn {
-    @apply px-6 py-3 rounded-xl font-medium transition-all duration-300 
+    @apply px-8 py-4 rounded-2xl font-medium transition-all duration-300 
            transform hover:scale-[1.02] active:scale-[0.98]
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50;
+           focus:outline-none focus:ring-4 focus:ring-offset-4 focus:ring-primary/30
+           disabled:opacity-50 disabled:cursor-not-allowed
+           text-lg;
   }
 
   .btn-primary {
@@ -83,22 +85,22 @@
   }
 
   .card {
-    @apply bg-neutral-50 rounded-2xl shadow-soft hover:shadow-hover 
+    @apply bg-neutral-50 rounded-3xl shadow-soft hover:shadow-hover 
            transition-all duration-300 transform hover:scale-[1.02]
-           border border-neutral-100;
+           border border-neutral-100/50 backdrop-blur-sm;
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl border border-neutral-200 
-           focus:border-primary focus:ring-2 focus:ring-primary/20 
+    @apply w-full px-6 py-4 rounded-2xl border-2 border-neutral-200 
+           focus:border-primary focus:ring-4 focus:ring-primary/20 
            outline-none transition-all duration-200
-           bg-neutral-50 text-neutral-900
+           bg-neutral-50 text-neutral-900 text-lg
            placeholder:text-neutral-400
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .section {
-    @apply py-16 px-4 md:px-8 lg:px-16;
+    @apply py-24 px-4 md:px-8 lg:px-16;
   }
 
   .container-custom {
@@ -106,7 +108,7 @@
   }
 
   .tag {
-    @apply px-3 py-1 rounded-xl text-sm font-medium
+    @apply px-4 py-2 rounded-xl text-base font-medium
            bg-beige-50 text-neutral-700
            transition-all duration-200;
   }
@@ -116,8 +118,8 @@
   }
 
   .nav-link {
-    @apply px-4 py-2 rounded-xl text-neutral-700 hover:text-primary
-           transition-all duration-200 relative
+    @apply px-6 py-3 rounded-xl text-neutral-700 hover:text-primary
+           transition-all duration-200 relative text-lg
            after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0
            after:bg-primary after:transition-all after:duration-200
            hover:after:w-full;
@@ -128,7 +130,15 @@
   }
 
   .glass-effect {
-    @apply bg-neutral-50/80 backdrop-blur-md border border-neutral-100/50;
+    @apply bg-neutral-50/80 backdrop-blur-xl border border-neutral-100/50;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-light;
+  }
+
+  .hover-card {
+    @apply transition-all duration-300 hover:shadow-hover hover:scale-[1.02] hover:-translate-y-1;
   }
 }
 
@@ -136,7 +146,7 @@
 @keyframes fadeIn {
   from { 
     opacity: 0; 
-    transform: translateY(10px); 
+    transform: translateY(20px); 
   }
   to { 
     opacity: 1; 
@@ -147,9 +157,11 @@
 @keyframes slideIn {
   from {
     transform: translateX(-100%);
+    opacity: 0;
   }
   to {
     transform: translateX(0);
+    opacity: 1;
   }
 }
 
@@ -164,22 +176,38 @@
   }
 }
 
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
 .animate-slide-in {
-  animation: slideIn 0.5s ease-out forwards;
+  animation: slideIn 0.6s ease-out forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.5s ease-out forwards;
+  animation: scaleIn 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 /* Кастомный скроллбар */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
