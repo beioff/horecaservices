@@ -158,9 +158,10 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {paginatedCompanies.map((company, index) => (
-                <div
+                <Link
                   key={company.id}
-                  className={`card p-8 hover-card ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+                  href={`/companies/${company.id}`}
+                  className={`card p-8 hover-card ${isVisible ? 'animate-fade-in' : 'opacity-0'} block`}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex items-center mb-6">
@@ -196,12 +197,13 @@ export default function Home() {
                     </div>
                   )}
                   <Link
-                    href={`/companies/${company.id}`}
+                    href="/contact"
+                    onClick={(e) => e.stopPropagation()}
                     className="btn btn-primary w-full hover-glow"
                   >
                     {company.contactCta}
                   </Link>
-                </div>
+                </Link>
               ))}
             </div>
 
